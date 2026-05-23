@@ -59,7 +59,9 @@ def apply_transactions(transactions: list[TxRecord]) -> FIFOState:
         fees = Decimal(str(tx.fees))
 
         if tx.type == "BUY":
-            lot_deque.append(Lot(quantity=qty, cost_per_share=price, acquired_date=tx.trade_date))
+            # fees are part of cost basis (fully-loaded cost per share)
+            cost_per_share = (price * qty + fees) / qty if qty > Decimal("0") else price
+            lot_deque.append(Lot(quantity=qty, cost_per_share=cost_per_share, acquired_date=tx.trade_date))
             cash_flow -= qty * price + fees
 
         elif tx.type == "SELL":
@@ -72,6 +74,7 @@ def apply_transactions(transactions: list[TxRecord]) -> FIFOState:
                 remaining_sell -= consumed
                 if lot.quantity == Decimal("0"):
                     lot_deque.popleft()
+            realized_pnl -= fees  # sell-side fees reduce realized gain
             cash_flow += qty * price - fees
 
         elif tx.type == "SPLIT":

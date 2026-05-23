@@ -9,7 +9,7 @@ from app.providers.base import PriceProvider
 
 class YFinanceProvider(PriceProvider):
     async def fetch_latest_close(self, symbol: str) -> tuple[Decimal, date]:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self._sync_latest_close, symbol)
 
     def _sync_latest_close(self, symbol: str) -> tuple[Decimal, date]:
@@ -22,7 +22,7 @@ class YFinanceProvider(PriceProvider):
         return Decimal(str(round(float(last_row["Close"]), 4))), price_date
 
     async def fetch_history(self, symbol: str, start: date, end: date) -> list[tuple[date, Decimal]]:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self._sync_history, symbol, start, end)
 
     def _sync_history(self, symbol: str, start: date, end: date) -> list[tuple[date, Decimal]]:

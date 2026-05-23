@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from supabase import AsyncClient
 
 from app.auth import create_access_token, hash_password, verify_password
+from app.config import settings
 from app.db.supabase_client import get_supabase
 from app.dependencies import get_current_user
 from app.schemas.user import TokenResponse, UserCreate, UserRead
@@ -26,7 +27,7 @@ async def login(
         value=token,
         httponly=True,
         samesite="lax",
-        secure=False,
+        secure=settings.ENVIRONMENT == "production",
         max_age=60 * 60 * 24 * 7,
     )
     return TokenResponse(access_token=token)

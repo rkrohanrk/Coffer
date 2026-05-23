@@ -42,7 +42,7 @@ async def _user_account_ids(user: dict, db: AsyncClient) -> list[str]:
 async def list_transactions(
     account_id: uuid.UUID | None = Query(default=None),
     asset_id: uuid.UUID | None = Query(default=None),
-    type: str | None = Query(default=None),
+    tx_type: str | None = Query(default=None, alias="type"),
     page: int = Query(default=1, ge=1),
     size: int = Query(default=50, ge=1, le=200),
     user: dict = Depends(get_current_user),
@@ -60,8 +60,8 @@ async def list_transactions(
         q = q.eq("account_id", str(account_id))
     if asset_id:
         q = q.eq("asset_id", str(asset_id))
-    if type:
-        q = q.eq("type", type.upper())
+    if tx_type:
+        q = q.eq("type", tx_type.upper())
 
     q = q.order("trade_date", desc=True).order("created_at", desc=True)
     q = q.range((page - 1) * size, page * size - 1)

@@ -53,12 +53,12 @@ async def stage_preview(content: bytes) -> tuple[str, list[dict]]:
     return preview_id, rows
 
 
-async def commit_preview(preview_id: str, db: AsyncClient) -> int:
+async def commit_preview(preview_id: str, db: AsyncClient, user_id: str) -> int:
     rows = _previews.get(preview_id)
     if rows is None:
         raise ImportError("Preview not found or expired")
 
-    acct_result = await db.table("accounts").select("id,name").execute()
+    acct_result = await db.table("accounts").select("id,name").eq("user_id", user_id).execute()
     accounts = {r["name"].lower(): r["id"] for r in acct_result.data}
 
     asset_result = await db.table("assets").select("id,symbol").execute()

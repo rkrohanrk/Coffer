@@ -7,6 +7,8 @@ from app.services.import_service import ImportError, commit_preview, stage_previ
 
 router = APIRouter(prefix="/import", tags=["import"])
 
+_MAX_CSV_BYTES = 5 * 1024 * 1024  # 5 MB
+
 
 @router.post("/csv")
 async def upload_csv(
@@ -14,6 +16,8 @@ async def upload_csv(
     user: dict = Depends(get_current_user),
 ) -> dict:
     content = await file.read()
+    if len(content) > _MAX_CSV_BYTES:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="File too large (max 5 MB)")
     try:
         preview_id, rows = await stage_preview(content)
     except ImportError as exc:
@@ -28,7 +32,7 @@ async def commit_csv(
     db: AsyncClient = Depends(get_supabase),
 ) -> dict:
     try:
-        count = await commit_preview(preview_id, db)
+        count = await commit_preview(preview_id, db, user["id"])
     except ImportError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
     return {"inserted": count}
