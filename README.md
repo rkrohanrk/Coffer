@@ -26,11 +26,13 @@ Copy `backend/.env.example` to `backend/.env`.
 
 | Variable | Default | Description |
 |---|---|---|
-| `DATABASE_URL` | `postgresql+asyncpg://...` | Async PostgreSQL URL |
+| `SUPABASE_URL` | *(required)* | Supabase project URL |
+| `SUPABASE_SERVICE_KEY` | *(required)* | Supabase service role key (server-side only) |
 | `SECRET_KEY` | *(required)* | JWT signing key — `openssl rand -hex 32` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `10080` | JWT expiry (7 days) |
-| `CURRENCY` | `INR` | Display currency |
-| `PRICE_FETCH_CRON` | `03 16 * * 1-5` | Nightly fetch — 21:30 IST weekdays (UTC) |
+| `ENVIRONMENT` | `development` | Set to `production` to enable secure cookie flag |
+| `ADMIN_EMAIL` | *(required)* | Seeded admin account email |
+| `ADMIN_PASSWORD` | *(required)* | Seeded admin account password |
 
 ---
 
@@ -61,18 +63,27 @@ date,account,symbol,type,quantity,price,fees,notes
 OpenAPI docs: http://localhost:8000/docs
 
 ```
-POST /api/v1/auth/register
 POST /api/v1/auth/login
 POST /api/v1/auth/logout
 GET  /api/v1/auth/me
 
-GET  /api/v1/accounts
-POST /api/v1/accounts
+GET    /api/v1/accounts
+POST   /api/v1/accounts
+GET    /api/v1/accounts/{id}
+PATCH  /api/v1/accounts/{id}
+DELETE /api/v1/accounts/{id}
+
+GET  /api/v1/assets
+POST /api/v1/assets
+
+GET    /api/v1/transactions?page=1&size=50&account_id=...&type=BUY
+POST   /api/v1/transactions
+DELETE /api/v1/transactions/{id}
+
 GET  /api/v1/holdings?as_of=YYYY-MM-DD
-GET  /api/v1/transactions?page=1&size=50&account_id=...&type=BUY
 GET  /api/v1/performance?as_of=YYYY-MM-DD
 GET  /api/v1/allocation?group_by=asset_class|sector
-GET  /api/v1/tax?fy=2024-25         ← STCG / LTCG summary
+
 POST /api/v1/import/csv
 POST /api/v1/import/csv/{id}/commit
 POST /api/v1/prices/refresh
@@ -94,13 +105,16 @@ pytest --cov=app/lib --cov=app/services --cov-report=term-missing
 
 ```
 backend/app/
-  lib/finance/   — pure math: FIFO, XIRR, Modified Dietz, STCG/LTCG classifier
-  services/      — holdings engine, performance, tax, pricing, import
+  lib/finance/   — pure math: FIFO, XIRR, Modified Dietz
+  services/      — holdings engine, performance, pricing, import
   api/v1/        — FastAPI routers (all scoped to authenticated user)
-  models/        — SQLAlchemy ORM (User, Account, Asset, Transaction, Price)
-  schemas/       — Pydantic v2 request/response
-  providers/     — PriceProvider interface + yfinance (NSE/BSE)
-  jobs/          — APScheduler nightly fetch at 21:30 IST weekdays
+  schemas/       — Pydantic v2 request/response (no ORM — Supabase client used directly)
+  providers/     — PriceProvider interface + yfinance impl
+  jobs/          — APScheduler nightly fetch at 16:03 UTC (21:33 IST) weekdays
+  db/            — shared async Supabase client
+  auth.py        — JWT encode/decode + bcrypt
+  config.py      — pydantic-settings (reads backend/.env)
+  dependencies.py — get_current_user FastAPI dependency
 ```
 
 Holdings derived from transactions — no separate holdings table.
