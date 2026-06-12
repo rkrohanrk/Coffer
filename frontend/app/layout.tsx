@@ -3,8 +3,9 @@ import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 
 import Providers from "./providers";
 import "./styles/design.css";
-import "./styles/login.css";
+import "./styles/login2.css";
 import "./styles/pms.css";
+import "./styles/coffer-dash.css";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],

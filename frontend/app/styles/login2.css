@@ -1,0 +1,272 @@
+/* ============================================================
+   login2.css — Coffer auth (sign in / sign up)
+   Split layout: brand panel (left) + form (right).
+   Scoped under .cof-auth to avoid collisions with pms.css /
+   design.css (.tabs, .field, .row, .lbl, etc. are all generic
+   names reused elsewhere in the app).
+   ============================================================ */
+
+.cof-auth {
+  --panel: #0c1016;
+  --card: #0d1117;
+  --card2: #11161e;
+  --line2: var(--line-2);
+  --mut: var(--muted);
+  --acc: var(--accent);
+  --acc-ink: color-mix(in srgb, var(--accent) 22%, #000 78%);
+  --acc-dim: color-mix(in srgb, var(--accent) 13%, transparent);
+  --font: var(--font-display);
+  --mono: var(--font-mono);
+
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--fg);
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+.cof-auth .lbl {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.14em; color: var(--mut);
+}
+
+/* ============================================================
+   LEFT — brand panel
+   ============================================================ */
+.cof-auth .auth-brand {
+  position: relative; overflow: hidden;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  padding: 40px clamp(36px, 5vw, 72px);
+  display: flex; flex-direction: column; justify-content: space-between;
+}
+.cof-auth .auth-brand::before { /* accent glow */
+  content: ""; position: absolute; width: 720px; height: 720px; left: -180px; top: -240px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--acc) 22%, transparent), transparent 62%);
+  filter: blur(20px); pointer-events: none;
+}
+.cof-auth .auth-brand::after { /* faint grid */
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.5;
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(80% 70% at 30% 40%, #000 30%, transparent 80%);
+}
+.cof-auth .auth-brand > * { position: relative; z-index: 1; }
+
+.cof-auth .brand-mark { display: inline-flex; align-items: center; gap: 12px; }
+.cof-auth .brand-mark .sq {
+  width: 30px; height: 30px; border-radius: 9px; background: var(--acc); color: var(--acc-ink);
+  display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 16px;
+  box-shadow: 0 0 22px var(--acc-dim);
+}
+.cof-auth .brand-mark b { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+.cof-auth .brand-mark b small { color: var(--faint); font-weight: 500; font-size: 10px; font-family: var(--mono); letter-spacing: 0.1em; }
+
+.cof-auth .auth-hero { display: flex; flex-direction: column; flex: 1; min-height: 0; max-width: 540px; }
+.cof-auth .auth-hero .ey { display: inline-block; align-self: flex-start; white-space: nowrap; margin-bottom: 22px; padding: 5px 11px; border: 1px solid var(--line2); border-radius: 99px; }
+.cof-auth .auth-hero h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.04; margin: 0; }
+.cof-auth .auth-hero h1 .ic { color: var(--acc); }
+
+/* ---------- left media: phone mockup with seesaw rock ---------- */
+.cof-auth .left-stage {
+  position: relative;
+  flex: 1; min-height: 260px; margin-top: 28px;
+  display: grid; place-items: center; perspective: 1300px;
+}
+.cof-auth .stage-wave {
+  position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0;
+  pointer-events: none; opacity: 0.9;
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 55%, #000 45%, transparent 88%);
+  mask-image: radial-gradient(120% 90% at 50% 55%, #000 45%, transparent 88%);
+}
+.cof-auth .device {
+  position: relative; z-index: 1; width: 236px; max-width: 70%; aspect-ratio: 9 / 18.6;
+  border-radius: 42px; padding: 9px;
+  background: linear-gradient(158deg, #1b212a 0%, #0a0d12 60%);
+  box-shadow: 0 44px 90px -34px rgba(0,0,0,0.92), inset 0 0 0 1px rgba(255,255,255,0.09), inset 0 0 0 6px rgba(255,255,255,0.018);
+  transform-origin: center; transform-style: preserve-3d; will-change: transform;
+  transform: rotateX(16deg) rotateY(18deg) rotateZ(3deg);
+}
+.cof-auth .device .notch {
+  position: absolute; z-index: 4; top: 17px; left: 50%; transform: translateX(-50%);
+  width: 76px; height: 17px; border-radius: 99px; background: #04060a;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cof-auth .device { animation: cofRock 7s ease-in-out infinite; }
+}
+@keyframes cofRock {
+  0%, 100% { transform: rotateX(17deg) rotateY(20deg) rotateZ(3.5deg) translateY(-5px); }
+  50%      { transform: rotateX(13deg) rotateY(13deg) rotateZ(-0.5deg) translateY(5px); }
+}
+
+.cof-auth .screen {
+  position: relative; height: 100%; border-radius: 34px; overflow: hidden;
+  background: radial-gradient(120% 80% at 50% -10%, #11161e 0%, #07090c 60%);
+  padding: 30px 17px 17px; display: flex; flex-direction: column;
+}
+.cof-auth .scr-head { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.06em; color: var(--mut); }
+.cof-auth .scr-bal { font-family: var(--mono); font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin-top: 7px; line-height: 1; }
+.cof-auth .scr-bal .cur { color: var(--mut); font-size: 19px; margin-right: 1px; }
+.cof-auth .scr-bal .dec { color: var(--faint); font-size: 17px; }
+.cof-auth .scr-sub { font-family: var(--mono); font-size: 9.5px; color: var(--acc); margin-top: 7px; }
+
+.cof-auth .scr-spark { display: block; width: 100%; height: 38px; margin-top: 14px; color: var(--acc); }
+.cof-auth .scr-spark .s0 { stop-color: var(--acc); stop-opacity: 0.30; }
+.cof-auth .scr-spark .s1 { stop-color: var(--acc); stop-opacity: 0; }
+
+.cof-auth .scr-bars { display: flex; align-items: flex-end; gap: 6px; height: 78px; margin-top: 16px; }
+.cof-auth .scr-bars i { flex: 1; height: var(--h); border-radius: 4px 4px 2px 2px; background: linear-gradient(var(--acc), color-mix(in srgb, var(--acc) 45%, #07090c)); }
+.cof-auth .scr-bars i.dn { background: linear-gradient(var(--down), color-mix(in srgb, var(--down) 45%, #07090c)); }
+.cof-auth .scr-dow { display: flex; gap: 6px; margin-top: 8px; }
+.cof-auth .scr-dow span { flex: 1; text-align: center; font-family: var(--mono); font-size: 8px; color: var(--faint); }
+
+/* bottom: spending-mix donut + legend */
+.cof-auth .scr-bottom { margin-top: auto; padding-top: 14px; }
+.cof-auth .mix-card { display: flex; align-items: center; gap: 13px; border: 1px solid var(--line); border-radius: 13px; padding: 11px 13px; background: var(--card); }
+.cof-auth .mix { width: 62px; height: 62px; flex: 0 0 auto; transform: rotate(-90deg); }
+.cof-auth .mix .seg { fill: none; stroke: var(--c); stroke-width: 6; }
+.cof-auth .mix-legend { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0; }
+.cof-auth .mix-legend span { display: flex; align-items: center; gap: 6px; font-size: 9.5px; color: var(--mut); }
+.cof-auth .mix-legend span i { width: 7px; height: 7px; border-radius: 2px; flex: 0 0 auto; }
+.cof-auth .mix-legend span b { margin-left: auto; font-family: var(--mono); font-size: 9.5px; font-weight: 700; color: var(--fg); }
+
+.cof-auth .auth-foot { display: flex; gap: 22px; align-items: center; }
+.cof-auth .auth-foot span { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); display: inline-flex; align-items: center; gap: 7px; }
+.cof-auth .auth-foot span .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--acc); box-shadow: 0 0 8px var(--acc); }
+
+/* ============================================================
+   RIGHT — form panel
+   ============================================================ */
+.cof-auth .auth-form { display: flex; align-items: center; justify-content: center; padding: 40px 24px; overflow-y: auto; }
+.cof-auth .auth-card { width: min(400px, 100%); }
+
+.cof-auth .auth-card .head { margin-bottom: 22px; }
+.cof-auth .auth-card .head h2 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
+.cof-auth .auth-card .head p { color: var(--mut); font-size: 0.9rem; margin: 7px 0 0; }
+
+/* segmented tabs */
+.cof-auth .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); margin-bottom: 22px; position: relative; }
+.cof-auth .tabs button {
+  position: relative; z-index: 1; appearance: none; border: none; background: none; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--mut); padding: 10px 0; border-radius: 9px; transition: color 0.25s;
+}
+.cof-auth .tabs button.on { color: var(--acc-ink); }
+.cof-auth .tabs .glider { position: absolute; z-index: 0; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 5px); border-radius: 9px; background: var(--acc); transition: transform 0.34s cubic-bezier(0.34, 1.4, 0.64, 1); }
+.cof-auth .tabs.signup .glider { transform: translateX(calc(100% + 2px)); }
+
+/* social */
+.cof-auth .social { display: grid; gap: 10px; margin-bottom: 20px; }
+.cof-auth .social button {
+  display: flex; align-items: center; justify-content: center; gap: 11px;
+  width: 100%; height: 48px; border-radius: 12px; cursor: pointer;
+  border: 1px solid var(--line2); background: var(--card); color: var(--fg);
+  font-family: var(--font); font-size: 0.92rem; font-weight: 600;
+  transition: background 0.22s, border-color 0.22s, transform 0.12s;
+}
+.cof-auth .social button:hover { background: var(--card2); border-color: var(--mut); }
+.cof-auth .social button:active { transform: scale(0.98); }
+.cof-auth .social button svg { width: 18px; height: 18px; flex: 0 0 auto; }
+
+.cof-auth .divider { display: flex; align-items: center; gap: 14px; margin: 4px 0 20px; }
+.cof-auth .divider::before, .cof-auth .divider::after { content: ""; height: 1px; flex: 1; background: var(--line); }
+.cof-auth .divider span { font-family: var(--mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--faint); }
+
+/* fields */
+.cof-auth .field { margin-bottom: 14px; }
+.cof-auth .field label { font-family: var(--mono); font-size: 9.5px; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: var(--faint); display: block; margin-bottom: 7px; }
+.cof-auth .input { position: relative; }
+.cof-auth .input input {
+  width: 100%; height: 48px; background: var(--bg); border: 1px solid var(--line2); border-radius: 12px;
+  padding: 0 44px 0 14px; color: var(--fg); font-family: var(--mono); font-size: 0.9rem;
+  outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.cof-auth .input input::placeholder { color: var(--faint); }
+.cof-auth .input input:focus { border-color: var(--acc); box-shadow: 0 0 0 3px var(--acc-dim); }
+.cof-auth .input .eye {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  width: 34px; height: 34px; display: grid; place-items: center; border-radius: 8px;
+  color: var(--faint); cursor: pointer; background: none; border: none; transition: color 0.2s, background 0.2s;
+}
+.cof-auth .input .eye:hover { color: var(--fg); background: var(--card2); }
+.cof-auth .input .eye svg { width: 18px; height: 18px; }
+.cof-auth .input .eye .slash { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 0.3s ease; }
+.cof-auth .input .eye.off .slash { stroke-dashoffset: 0; }
+
+.cof-auth .row { display: flex; align-items: center; justify-content: space-between; margin: 2px 0 20px; }
+.cof-auth .check { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; font-size: 0.8rem; color: var(--mut); user-select: none; }
+.cof-auth .check input { display: none; }
+.cof-auth .check .box { width: 17px; height: 17px; border: 1px solid var(--line2); border-radius: 5px; display: grid; place-items: center; transition: all 0.18s; }
+.cof-auth .check input:checked + .box { background: var(--acc); border-color: var(--acc); }
+.cof-auth .check input:checked + .box::after { content: "✓"; color: var(--acc-ink); font-size: 0.72rem; font-weight: 800; }
+.cof-auth .forgot { font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mut); text-decoration: none; transition: color 0.25s; }
+.cof-auth .forgot:hover { color: var(--acc); }
+
+/* submit button with morph */
+.cof-auth .submit {
+  position: relative; width: 100%; height: 52px; border-radius: 12px; border: none;
+  background: var(--acc); color: var(--acc-ink); cursor: pointer; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  transition: width 0.5s cubic-bezier(0.34,1.4,0.64,1), border-radius 0.5s cubic-bezier(0.34,1.4,0.64,1), filter 0.2s;
+}
+.cof-auth .submit:hover { filter: brightness(1.06); }
+.cof-auth .submit .lab { display: inline-flex; align-items: center; gap: 9px; transition: opacity 0.2s; }
+.cof-auth .submit .lab .arr { transition: transform 0.3s ease; }
+.cof-auth .submit:hover .lab .arr { transform: translateX(3px); }
+.cof-auth .submit .spin { position: absolute; width: 22px; height: 22px; border-radius: 50%; border: 2.4px solid color-mix(in srgb, var(--acc-ink) 25%, transparent); border-top-color: var(--acc-ink); opacity: 0; animation: cofAuthSpin 0.7s linear infinite; }
+.cof-auth .submit .chk { position: absolute; width: 26px; height: 26px; opacity: 0; }
+.cof-auth .submit .chk path { stroke: var(--acc-ink); stroke-width: 3.4; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 34; stroke-dashoffset: 34; }
+.cof-auth .submit.loading { width: 52px; border-radius: 50%; cursor: default; }
+.cof-auth .submit.loading .lab { opacity: 0; }
+.cof-auth .submit.loading .spin { opacity: 1; }
+.cof-auth .submit.done { width: 52px; border-radius: 50%; }
+.cof-auth .submit.done .lab { opacity: 0; }
+.cof-auth .submit.done .spin { opacity: 0; animation: none; }
+.cof-auth .submit.done .chk { opacity: 1; }
+.cof-auth .submit.done .chk path { stroke-dashoffset: 0; transition: stroke-dashoffset 0.4s ease 0.05s; }
+@keyframes cofAuthSpin { to { transform: rotate(360deg); } }
+
+.cof-auth .terms { margin-top: 14px; font-size: 0.72rem; color: var(--faint); line-height: 1.5; text-align: center; }
+.cof-auth .terms a { color: var(--mut); }
+.cof-auth .terms a:hover { color: var(--acc); }
+
+.cof-auth .switch { text-align: center; margin-top: 22px; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.04em; color: var(--faint); }
+.cof-auth .switch button { background: none; border: none; cursor: pointer; color: var(--acc); font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.04em; padding: 0; }
+.cof-auth .switch button:hover { text-decoration: underline; }
+
+/* signup-only fields hidden when signing in */
+.cof-auth .only-signup { display: none; }
+.cof-auth .auth-card.signup .only-signup { display: block; }
+.cof-auth .auth-card.signup .only-signin { display: none; }
+
+/* field entrance — gated so content stays visible if the clock is frozen */
+@media (prefers-reduced-motion: no-preference) {
+  .cof-auth .auth-card.anim-fields .field,
+  .cof-auth .auth-card.anim-fields .row,
+  .cof-auth .auth-card.anim-fields .submit { animation: cofFieldIn 0.5s cubic-bezier(0.22,1,0.36,1) both; }
+  .cof-auth .auth-card.anim-fields .field:nth-child(1) { animation-delay: 0.02s; }
+  .cof-auth .auth-card.anim-fields .field:nth-child(2) { animation-delay: 0.07s; }
+  .cof-auth .auth-card.anim-fields .field:nth-child(3) { animation-delay: 0.12s; }
+}
+@keyframes cofFieldIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.cof-auth .shake { animation: cofAuthShake 0.4s ease; }
+@keyframes cofAuthShake { 0%,100%{transform:translateX(0);} 20%,60%{transform:translateX(-6px);} 40%,80%{transform:translateX(6px);} }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 920px) {
+  .cof-auth { grid-template-columns: 1fr; }
+  .cof-auth .auth-brand { display: none; }
+  .cof-auth .auth-form { min-height: 100vh; }
+  .cof-auth .auth-card .mini-brand { display: flex; }
+}
+@media (min-width: 921px) { .cof-auth .auth-card .mini-brand { display: none; } }
+
+.cof-auth .auth-card .mini-brand { align-items: center; gap: 11px; margin-bottom: 26px; }
+.cof-auth .auth-card .mini-brand .sq { width: 28px; height: 28px; border-radius: 8px; background: var(--acc); color: var(--acc-ink); display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 15px; }
+.cof-auth .auth-card .mini-brand b { font-size: 16px; font-weight: 700; }

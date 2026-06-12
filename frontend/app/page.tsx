@@ -272,27 +272,26 @@ export default function Home() {
 
       // ── FAQ accordion (event delegation) ──────────────────
       const faqGrid = document.getElementById('faq-grid');
-      if (faqGrid) {
-        const faqClick = (e: Event) => {
-          const card = (e.target as HTMLElement).closest<HTMLElement>('.qa');
-          if (!card) return;
-          const stack = card.closest<HTMLElement>('.qa-stack');
-          if (!stack) return;
-          const wasOpen = stack.classList.contains('is-open');
-          faqGrid.querySelectorAll<HTMLElement>('.qa-stack.is-open').forEach((s) => {
-            s.classList.remove('is-open');
-            const c = s.querySelector<HTMLElement>('.qa');
-            if (c) { c.setAttribute('aria-expanded', 'false'); c.style.minHeight = ''; }
-          });
-          if (!wasOpen) {
-            stack.classList.add('is-open');
-            card.setAttribute('aria-expanded', 'true');
-            const panel = stack.querySelector<HTMLElement>('.qa-panel');
-            if (panel) card.style.minHeight = Math.max(200, Math.ceil(panel.scrollHeight)) + 'px';
-          }
-        };
-        faqGrid.addEventListener('click', faqClick);
-      }
+      const faqClick = (e: Event) => {
+        if (!faqGrid) return;
+        const card = (e.target as HTMLElement).closest<HTMLElement>('.qa');
+        if (!card) return;
+        const stack = card.closest<HTMLElement>('.qa-stack');
+        if (!stack) return;
+        const wasOpen = stack.classList.contains('is-open');
+        faqGrid.querySelectorAll<HTMLElement>('.qa-stack.is-open').forEach((s) => {
+          s.classList.remove('is-open');
+          const c = s.querySelector<HTMLElement>('.qa');
+          if (c) { c.setAttribute('aria-expanded', 'false'); c.style.minHeight = ''; }
+        });
+        if (!wasOpen) {
+          stack.classList.add('is-open');
+          card.setAttribute('aria-expanded', 'true');
+          const panel = stack.querySelector<HTMLElement>('.qa-panel');
+          if (panel) card.style.minHeight = Math.max(200, Math.ceil(panel.scrollHeight)) + 'px';
+        }
+      };
+      if (faqGrid) faqGrid.addEventListener('click', faqClick);
 
       return () => {
         clearTimeout(preloaderTimeout);
@@ -300,6 +299,7 @@ export default function Home() {
         revealObs?.disconnect();
         window.removeEventListener('resize', handleResize);
         window.removeEventListener('mousemove', handleMouseMove);
+        if (faqGrid) faqGrid.removeEventListener('click', faqClick);
         document.body.classList.remove('loading');
       };
     }
