@@ -193,6 +193,31 @@ export default function Home() {
     const track = document.getElementById('marq');
     if (track) track.innerHTML += track.innerHTML;
 
+    // ── FAQ accordion (event delegation) ─────────────────────
+    // Set up independently of the hero canvas below, so a canvas
+    // failure (e.g. a blocked 2D context) can never disable it.
+    const faqGrid = document.getElementById('faq-grid');
+    const faqClick = (e: Event) => {
+      if (!faqGrid) return;
+      const card = (e.target as HTMLElement).closest<HTMLElement>('.qa');
+      if (!card) return;
+      const stack = card.closest<HTMLElement>('.qa-stack');
+      if (!stack) return;
+      const wasOpen = stack.classList.contains('is-open');
+      faqGrid.querySelectorAll<HTMLElement>('.qa-stack.is-open').forEach((s) => {
+        s.classList.remove('is-open');
+        const c = s.querySelector<HTMLElement>('.qa');
+        if (c) { c.setAttribute('aria-expanded', 'false'); c.style.minHeight = ''; }
+      });
+      if (!wasOpen) {
+        stack.classList.add('is-open');
+        card.setAttribute('aria-expanded', 'true');
+        const panel = stack.querySelector<HTMLElement>('.qa-panel');
+        if (panel) card.style.minHeight = Math.max(200, Math.ceil(panel.scrollHeight)) + 'px';
+      }
+    };
+    if (faqGrid) faqGrid.addEventListener('click', faqClick);
+
     // ── hero canvas: flowing wave field ──────────────────────
     const canvas = canvasRef.current;
     const onResize = () => {};
@@ -270,29 +295,6 @@ export default function Home() {
       };
       frame();
 
-      // ── FAQ accordion (event delegation) ──────────────────
-      const faqGrid = document.getElementById('faq-grid');
-      const faqClick = (e: Event) => {
-        if (!faqGrid) return;
-        const card = (e.target as HTMLElement).closest<HTMLElement>('.qa');
-        if (!card) return;
-        const stack = card.closest<HTMLElement>('.qa-stack');
-        if (!stack) return;
-        const wasOpen = stack.classList.contains('is-open');
-        faqGrid.querySelectorAll<HTMLElement>('.qa-stack.is-open').forEach((s) => {
-          s.classList.remove('is-open');
-          const c = s.querySelector<HTMLElement>('.qa');
-          if (c) { c.setAttribute('aria-expanded', 'false'); c.style.minHeight = ''; }
-        });
-        if (!wasOpen) {
-          stack.classList.add('is-open');
-          card.setAttribute('aria-expanded', 'true');
-          const panel = stack.querySelector<HTMLElement>('.qa-panel');
-          if (panel) card.style.minHeight = Math.max(200, Math.ceil(panel.scrollHeight)) + 'px';
-        }
-      };
-      if (faqGrid) faqGrid.addEventListener('click', faqClick);
-
       return () => {
         clearTimeout(preloaderTimeout);
         cancelAnimationFrame(rafId);
@@ -308,6 +310,7 @@ export default function Home() {
       clearTimeout(preloaderTimeout);
       cancelAnimationFrame(rafId);
       revealObs?.disconnect();
+      if (faqGrid) faqGrid.removeEventListener('click', faqClick);
       document.body.classList.remove('loading');
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
