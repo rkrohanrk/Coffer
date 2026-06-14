@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 
-import { useLogin } from "@/lib/queries";
+import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/lib/toast";
 
 type Mode = "signin" | "signup";
@@ -63,7 +63,7 @@ function EyeToggle({ on, onClick }: { on: boolean; onClick: () => void }) {
 export default function LoginPage() {
   const router = useRouter();
   const toast = useToast();
-  const login = useLogin();
+  const supabase = createClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [mode, setMode] = useState<Mode>("signin");
@@ -98,33 +98,78 @@ export default function LoginPage() {
     return okEmail && okPw && okName && okMatch;
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  // Map raw Supabase auth errors to friendlier copy for the toast.
+  function readableError(message: string): string {
+    if (/invalid login credentials/i.test(message)) return "Incorrect email or password.";
+    if (/email not confirmed/i.test(message)) return "Confirm your email before signing in.";
+    if (/user already registered/i.test(message)) return "That email already has an account — sign in instead.";
+    if (/password should be at least/i.test(message)) return "Password is too short (minimum 6 characters).";
+    return message || "Something went wrong. Please try again.";
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (submitState !== "idle") return;
     if (!valid()) {
       triggerShake();
       return;
     }
+
+    setSubmitState("loading");
+
     if (mode === "signup") {
-      toast("Account creation isn't open yet — sign in with your existing account.", "neutral");
-      switchMode("signin");
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: { data: { full_name: name.trim() } },
+      });
+      if (error) {
+        setSubmitState("idle");
+        triggerShake();
+        toast(readableError(error.message), "down");
+        return;
+      }
+      // No session means Supabase requires email confirmation first.
+      if (!data.session) {
+        setSubmitState("idle");
+        toast("Check your inbox to confirm your email, then sign in.", "neutral");
+        switchMode("signin");
+        return;
+      }
+      setSubmitState("done");
+      setTimeout(() => router.push("/dashboard"), 650);
       return;
     }
-    setSubmitState("loading");
-    login.mutate(
-      { email: email.trim(), password },
-      {
-        onSuccess: () => {
-          setSubmitState("done");
-          setTimeout(() => router.push("/dashboard"), 650);
-        },
-        onError: (err) => {
-          setSubmitState("idle");
-          triggerShake();
-          toast(err instanceof Error ? err.message : "Sign in failed", "down");
-        },
-      }
-    );
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+    if (error) {
+      setSubmitState("idle");
+      triggerShake();
+      toast(readableError(error.message), "down");
+      return;
+    }
+    setSubmitState("done");
+    setTimeout(() => router.push("/dashboard"), 650);
+  }
+
+  async function handleForgot() {
+    const addr = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)) {
+      triggerShake();
+      toast("Enter your email above, then tap Forgot.", "neutral");
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(addr, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      toast(readableError(error.message), "down");
+      return;
+    }
+    toast("Password reset link sent — check your inbox.", "neutral");
   }
 
   function handleSocial() {
@@ -395,7 +440,7 @@ export default function LoginPage() {
                 <span className="box" />
                 Keep me signed in
               </label>
-              <a className="forgot" href="#" onClick={(e) => { e.preventDefault(); toast("Password reset isn't available yet.", "neutral"); }}>Forgot?</a>
+              <a className="forgot" href="#" onClick={(e) => { e.preventDefault(); handleForgot(); }}>Forgot?</a>
             </div>
 
             <button type="submit" className={["submit", submitState !== "idle" && submitState].filter(Boolean).join(" ")}>
