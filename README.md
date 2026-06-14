@@ -13,10 +13,12 @@ docker compose up --build
 ```
 
 Open http://localhost:3000 and register a new account, or use the seeded demo:
-- Email: `demo@example.com`
-- Password: `password123`
+- Email: `investor@coffer.in`
+- Password: `vault2026`
 
-The seed script populates demo data on first boot so the dashboard is non-empty.
+The login form is prefilled with these credentials. Running `backend/supabase/seed.sql`
+(see below) creates this real Supabase Auth user and populates demo data so the
+dashboard is non-empty.
 
 ---
 
@@ -26,13 +28,49 @@ Copy `backend/.env.example` to `backend/.env`.
 
 | Variable | Default | Description |
 |---|---|---|
-| `SUPABASE_URL` | *(required)* | Supabase project URL |
+| `SUPABASE_URL` | *(required)* | Supabase project URL (also used to verify auth JWTs via JWKS) |
 | `SUPABASE_SERVICE_KEY` | *(required)* | Supabase service role key (server-side only) |
-| `SECRET_KEY` | *(required)* | JWT signing key — `openssl rand -hex 32` |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | `10080` | JWT expiry (7 days) |
-| `ENVIRONMENT` | `development` | Set to `production` to enable secure cookie flag |
-| `ADMIN_EMAIL` | *(required)* | Seeded admin account email |
-| `ADMIN_PASSWORD` | *(required)* | Seeded admin account password |
+| `SUPABASE_JWT_SECRET` | *(optional)* | Only for legacy projects that sign access tokens with HS256 |
+| `ENVIRONMENT` | `development` | Set to `production` for production behaviour |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | *(optional)* | Only used by the legacy `seed.py` script |
+
+The frontend needs `frontend/.env.local` (copy `frontend/.env.local.example`):
+
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_API_BASE` | Base URL of the FastAPI backend |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/publishable key (safe to expose) |
+
+---
+
+## Authentication (Supabase Auth)
+
+Auth runs **client-side** via Supabase Auth (`@supabase/ssr`). The Next.js app owns
+the session (stored in cookies); FastAPI no longer logs anyone in — it only
+**verifies** the Supabase access token sent as `Authorization: Bearer <jwt>` and
+derives the user from it.
+
+**One-time setup**
+
+1. Apply the schema: run `backend/supabase/schema.sql` in the Supabase SQL Editor.
+2. Seed the demo user + data: run `backend/supabase/seed.sql` in the SQL Editor.
+   This creates the confirmed user `investor@coffer.in` / `vault2026`.
+3. Set the frontend env vars above, then `npm run dev` in `frontend/`.
+
+**Flows wired to Supabase Auth**
+
+- Sign in → `signInWithPassword`
+- Sign up → `signUp` (shows a "confirm your email" toast when confirmation is required)
+- Forgot password → `resetPasswordForEmail`, returning to `/reset-password`
+  (`updateUser` sets the new password)
+- Route guard → `middleware.ts` refreshes the session and redirects unauthenticated
+  users away from `/dashboard`
+- Sign out → `supabase.auth.signOut` (`signOut()` helper in `frontend/lib/auth.ts`)
+
+> Email sign-up/reset require email delivery to be configured in the Supabase
+> dashboard (Auth → Providers / Email). The seeded demo user is pre-confirmed, so
+> the prefilled login works without email setup.
 
 ---
 

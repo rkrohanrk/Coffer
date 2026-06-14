@@ -4,7 +4,7 @@ from datetime import date
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from supabase import AsyncClient
+from supabase import AClient as AsyncClient
 
 from app.db.supabase_client import get_supabase
 from app.dependencies import get_current_user

@@ -5,7 +5,7 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 
 import pandas as pd
-from supabase import AsyncClient
+from supabase import AClient as AsyncClient
 
 REQUIRED_COLUMNS = {"date", "account", "symbol", "type", "quantity", "price", "fees"}
 VALID_TYPES = {"BUY", "SELL", "DIVIDEND", "SPLIT", "DEPOSIT", "WITHDRAWAL"}

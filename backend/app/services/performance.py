@@ -2,7 +2,7 @@
 from datetime import date, timedelta
 from decimal import Decimal
 
-from supabase import AsyncClient
+from supabase import AClient as AsyncClient
 
 from app.lib.finance.twr import modified_dietz
 from app.lib.finance.xirr import xirr as calc_xirr

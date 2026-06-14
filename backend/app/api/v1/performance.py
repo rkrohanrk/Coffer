@@ -1,7 +1,7 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends, Query
-from supabase import AsyncClient
+from supabase import AClient as AsyncClient
 
 from app.db.supabase_client import get_supabase
 from app.dependencies import get_current_user

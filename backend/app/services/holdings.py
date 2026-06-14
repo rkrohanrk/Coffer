@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 
-from supabase import AsyncClient
+from supabase import AClient as AsyncClient
 
 from app.lib.finance.fifo import apply_transactions
 from app.schemas.holding import HoldingRead, PortfolioSummary

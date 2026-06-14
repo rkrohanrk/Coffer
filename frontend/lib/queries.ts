@@ -1,10 +1,5 @@
 "use client";
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-  type UseQueryResult,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { apiFetch } from "./api";
 import type {
@@ -16,11 +11,9 @@ import type {
   Transaction,
   TransactionCreate,
   TransactionPage,
-  User,
 } from "./types";
 
 export const keys = {
-  me: ["me"] as const,
   accounts: ["accounts"] as const,
   assets: ["assets"] as const,
   holdings: ["holdings"] as const,
@@ -29,15 +22,6 @@ export const keys = {
   transactions: (params?: Record<string, unknown>) =>
     ["transactions", params ?? {}] as const,
 };
-
-export function useMe(): UseQueryResult<User> {
-  return useQuery({
-    queryKey: keys.me,
-    queryFn: () => apiFetch<User>("/auth/me"),
-    retry: false,
-    staleTime: 60_000,
-  });
-}
 
 export function useAccounts() {
   return useQuery({
@@ -85,26 +69,6 @@ export function useTransactions(params?: { page?: number; size?: number }) {
     queryKey: keys.transactions({ page, size }),
     queryFn: () =>
       apiFetch<TransactionPage>(`/transactions?page=${page}&size=${size}`),
-  });
-}
-
-export function useLogin() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (body: { email: string; password: string }) =>
-      apiFetch<{ access_token: string }>("/auth/login", {
-        method: "POST",
-        body: JSON.stringify(body),
-      }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: keys.me }),
-  });
-}
-
-export function useLogout() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: () => apiFetch("/auth/logout", { method: "POST" }),
-    onSuccess: () => qc.clear(),
   });
 }
 

@@ -9,8 +9,9 @@ import { CofHero } from "@/components/coffer/hero";
 import { CofHoldings, type HoldingRow } from "@/components/coffer/holdings";
 import { Delta } from "@/components/coffer/primitives";
 import { CofRail, useEdgeDrawer } from "@/components/coffer/rail";
+import { useUser } from "@/lib/auth";
 import { rupeeCompact } from "@/lib/format";
-import { useAllocation, useHoldings, useMe, usePerformance, useTransactions } from "@/lib/queries";
+import { useAllocation, useHoldings, usePerformance, useTransactions } from "@/lib/queries";
 import { INDICES } from "@/lib/sectors";
 
 const DOW = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
@@ -25,7 +26,7 @@ function marketStatus(d: Date) {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const meQ = useMe();
+  const { user, loading: userLoading } = useUser();
   const holdingsQ = useHoldings();
   const perfQ = usePerformance();
   const allocQ = useAllocation("sector");
@@ -36,8 +37,8 @@ export default function DashboardPage() {
   const open = hoverOpen || pinned;
 
   useEffect(() => {
-    if (meQ.isError) router.replace("/login");
-  }, [meQ.isError, router]);
+    if (!userLoading && !user) router.replace("/login");
+  }, [userLoading, user, router]);
 
   // Arms the entrance animations defined in coffer-dash.css, then drops the
   // gate so base styles win even if the tab was backgrounded mid-animation.
@@ -85,10 +86,10 @@ export default function DashboardPage() {
   const allocTotal = allocQ.data?.total_market_value ?? totals.netWorth;
   const recent = txQ.data?.items ?? [];
 
-  const userName = meQ.data?.email?.split("@")[0] ?? "Investor";
+  const userName = user?.email?.split("@")[0] ?? "Investor";
   const userInitial = userName.charAt(0).toUpperCase();
 
-  if (meQ.isLoading || meQ.isError) {
+  if (userLoading || !user) {
     return <div className="cof" style={{ minHeight: "100vh" }} />;
   }
 

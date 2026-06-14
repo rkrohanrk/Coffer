@@ -2,7 +2,7 @@
 import logging
 from datetime import datetime, timezone
 
-from supabase import AsyncClient
+from supabase import AClient as AsyncClient
 
 from app.providers.base import PriceProvider
 

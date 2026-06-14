@@ -1,8 +1,20 @@
-// Thin fetch wrapper around the Coffer FastAPI backend. Auth is a httpOnly
-// cookie set by the backend on login, so every request uses credentials:"include".
+// Thin fetch wrapper around the Coffer FastAPI backend. Auth is the Supabase
+// access token, attached as an Authorization: Bearer header on every request.
+import { createClient } from "./supabase/client";
 
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000/api/v1";
+
+// Pulls the current Supabase access token from the browser session.
+async function authHeader(): Promise<Record<string, string>> {
+  const supabase = createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  return session?.access_token
+    ? { Authorization: `Bearer ${session.access_token}` }
+    : {};
+}
 
 export class ApiError extends Error {
   status: number;
@@ -29,12 +41,12 @@ export async function apiFetch<T>(
   init: RequestInit = {},
 ): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
-    credentials: "include",
+    ...init,
     headers: {
       "Content-Type": "application/json",
+      ...(await authHeader()),
       ...(init.headers ?? {}),
     },
-    ...init,
   });
 
   if (!res.ok) {
@@ -50,7 +62,7 @@ export async function apiFetch<T>(
 export async function apiUpload<T>(path: string, form: FormData): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
-    credentials: "include",
+    headers: await authHeader(),
     body: form,
   });
   if (!res.ok) throw new ApiError(res.status, await parseError(res));

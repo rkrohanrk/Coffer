@@ -4,7 +4,7 @@ import os
 from datetime import date
 from decimal import Decimal
 
-from supabase import AsyncClient, create_async_client
+from supabase import AClient as AsyncClient, acreate_client as create_async_client
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")

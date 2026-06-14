@@ -1,7 +1,7 @@
 """Supabase async client — single shared instance per process."""
 import asyncio
 
-from supabase import AsyncClient, create_async_client
+from supabase import AClient as AsyncClient, acreate_client as create_async_client
 
 from app.config import settings
 
