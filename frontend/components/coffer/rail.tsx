@@ -64,6 +64,13 @@ const CofIcon: Record<string, JSX.Element> = {
       </g>
     </svg>
   ),
+  logout: (
+    <svg className="ic ic-logout" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14.5 4 H6 a2 2 0 0 0 -2 2 V18 a2 2 0 0 0 2 2 H14.5" />
+      <path d="M10 12 H20.5" />
+      <path d="M17.5 8.5 L21 12 L17.5 15.5" />
+    </svg>
+  ),
 };
 
 const COF_NAV = [
@@ -76,11 +83,12 @@ const COF_NAV = [
 ];
 
 export function CofRail({
-  open, active = "dashboard", onTogglePin, userInitial, userName, aum,
+  open, active = "dashboard", onTogglePin, onLogout, userInitial, userName, aum,
 }: {
   open: boolean;
   active?: string;
   onTogglePin: () => void;
+  onLogout: () => void;
   userInitial: string;
   userName: string;
   aum: string;
@@ -112,10 +120,14 @@ export function CofRail({
           {CofIcon.gear}
           <span className="nav-label" style={delay(7)}>Settings</span>
         </button>
+        <button type="button" className="nav-item" onClick={onLogout}>
+          {CofIcon.logout}
+          <span className="nav-label" style={delay(8)}>Log out</span>
+        </button>
       </nav>
       <div className="user">
         <span className="ava">{userInitial}</span>
-        <span className="nav-label" style={delay(8)}>
+        <span className="nav-label" style={delay(9)}>
           <b>{userName}</b>
           <span>{aum}</span>
         </span>

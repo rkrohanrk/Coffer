@@ -9,7 +9,14 @@ import { CofHero } from "@/components/coffer/hero";
 import { CofHoldings, type HoldingRow } from "@/components/coffer/holdings";
 import { Delta } from "@/components/coffer/primitives";
 import { CofRail, useEdgeDrawer } from "@/components/coffer/rail";
-import { useUser } from "@/lib/auth";
+import { signOut, useUser } from "@/lib/auth";
+import {
+  DEMO_ALLOCATION,
+  DEMO_EMAIL,
+  DEMO_PERFORMANCE,
+  DEMO_SUMMARY,
+  DEMO_TRANSACTIONS,
+} from "@/lib/demo";
 import { rupeeCompact } from "@/lib/format";
 import { useAllocation, useHoldings, usePerformance, useTransactions } from "@/lib/queries";
 import { INDICES } from "@/lib/sectors";
@@ -32,6 +39,10 @@ export default function DashboardPage() {
   const allocQ = useAllocation("sector");
   const txQ = useTransactions({ page: 1, size: 6 });
 
+  // The seeded demo user gets a baked-in portfolio so the dashboard is populated
+  // without a backend. Real users always use the live API responses.
+  const isDemo = (user?.email ?? "").trim().toLowerCase() === DEMO_EMAIL;
+
   const [pinned, setPinned] = useState(false);
   const hoverOpen = useEdgeDrawer(10);
   const open = hoverOpen || pinned;
@@ -39,6 +50,11 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!userLoading && !user) router.replace("/login");
   }, [userLoading, user, router]);
+
+  async function handleLogout() {
+    await signOut();
+    router.replace("/login");
+  }
 
   // Arms the entrance animations defined in coffer-dash.css, then drops the
   // gate so base styles win even if the tab was backgrounded mid-animation.
@@ -51,7 +67,7 @@ export default function DashboardPage() {
     };
   }, []);
 
-  const summary = holdingsQ.data;
+  const summary = isDemo ? DEMO_SUMMARY : holdingsQ.data;
 
   const totals = useMemo(() => {
     if (!summary) return { invested: 0, pnl: 0, pnlPct: 0, cash: 0, netWorth: 0 };
@@ -77,14 +93,16 @@ export default function DashboardPage() {
       }));
   }, [summary]);
 
+  const perf = isDemo ? DEMO_PERFORMANCE : perfQ.data;
   const xirr = useMemo(() => {
-    const returns = perfQ.data?.returns ?? [];
+    const returns = perf?.returns ?? [];
     return returns.find((r) => r.period === "ALL")?.xirr ?? returns[0]?.xirr ?? null;
-  }, [perfQ.data]);
+  }, [perf]);
 
-  const allocItems = allocQ.data?.items ?? [];
-  const allocTotal = allocQ.data?.total_market_value ?? totals.netWorth;
-  const recent = txQ.data?.items ?? [];
+  const alloc = isDemo ? DEMO_ALLOCATION : allocQ.data;
+  const allocItems = alloc?.items ?? [];
+  const allocTotal = alloc?.total_market_value ?? totals.netWorth;
+  const recent = isDemo ? DEMO_TRANSACTIONS : (txQ.data?.items ?? []);
 
   const userName = user?.email?.split("@")[0] ?? "Investor";
   const userInitial = userName.charAt(0).toUpperCase();
@@ -103,6 +121,7 @@ export default function DashboardPage() {
         open={open}
         active="dashboard"
         onTogglePin={() => setPinned((p) => !p)}
+        onLogout={handleLogout}
         userInitial={userInitial}
         userName={userName}
         aum={`AUM ${rupeeCompact(totals.netWorth)}`}
@@ -143,7 +162,7 @@ export default function DashboardPage() {
             <CofAllocation items={allocItems} totalValue={allocTotal} delay={220} />
           </div>
           <div className="cof-col">
-            <PnlCalendar mode="amounts" delay={110} />
+            <PnlCalendar delay={110} />
             <CofActivity items={recent} delay={210} />
           </div>
         </div>

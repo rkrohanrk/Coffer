@@ -193,30 +193,43 @@ export default function Home() {
     const track = document.getElementById('marq');
     if (track) track.innerHTML += track.innerHTML;
 
-    // ── FAQ accordion (event delegation) ─────────────────────
+    // ── FAQ accordion (hover to reveal) ──────────────────────
     // Set up independently of the hero canvas below, so a canvas
     // failure (e.g. a blocked 2D context) can never disable it.
+    // Hovering a question opens its answer (reusing the .is-open
+    // animation); moving the pointer off the card closes it again.
     const faqGrid = document.getElementById('faq-grid');
-    const faqClick = (e: Event) => {
-      if (!faqGrid) return;
-      const card = (e.target as HTMLElement).closest<HTMLElement>('.qa');
-      if (!card) return;
-      const stack = card.closest<HTMLElement>('.qa-stack');
-      if (!stack) return;
-      const wasOpen = stack.classList.contains('is-open');
-      faqGrid.querySelectorAll<HTMLElement>('.qa-stack.is-open').forEach((s) => {
-        s.classList.remove('is-open');
-        const c = s.querySelector<HTMLElement>('.qa');
-        if (c) { c.setAttribute('aria-expanded', 'false'); c.style.minHeight = ''; }
-      });
-      if (!wasOpen) {
-        stack.classList.add('is-open');
-        card.setAttribute('aria-expanded', 'true');
-        const panel = stack.querySelector<HTMLElement>('.qa-panel');
-        if (panel) card.style.minHeight = Math.max(200, Math.ceil(panel.scrollHeight)) + 'px';
-      }
+    const closeStack = (stack: HTMLElement) => {
+      stack.classList.remove('is-open');
+      const c = stack.querySelector<HTMLElement>('.qa');
+      if (c) { c.setAttribute('aria-expanded', 'false'); c.style.minHeight = ''; }
     };
-    if (faqGrid) faqGrid.addEventListener('click', faqClick);
+    const openStack = (stack: HTMLElement) => {
+      faqGrid?.querySelectorAll<HTMLElement>('.qa-stack.is-open').forEach((s) => {
+        if (s !== stack) closeStack(s);
+      });
+      stack.classList.add('is-open');
+      const card = stack.querySelector<HTMLElement>('.qa');
+      const panel = stack.querySelector<HTMLElement>('.qa-panel');
+      if (card) card.setAttribute('aria-expanded', 'true');
+      if (card && panel) card.style.minHeight = Math.max(200, Math.ceil(panel.scrollHeight)) + 'px';
+    };
+    const faqOver = (e: Event) => {
+      const stack = (e.target as HTMLElement).closest<HTMLElement>('.qa-stack');
+      if (stack && !stack.classList.contains('is-open')) openStack(stack);
+    };
+    const faqOut = (e: Event) => {
+      const stack = (e.target as HTMLElement).closest<HTMLElement>('.qa-stack');
+      if (!stack) return;
+      // Ignore moves that stay inside the same card (child → child).
+      const to = (e as MouseEvent).relatedTarget as Node | null;
+      if (to && stack.contains(to)) return;
+      closeStack(stack);
+    };
+    if (faqGrid) {
+      faqGrid.addEventListener('mouseover', faqOver);
+      faqGrid.addEventListener('mouseout', faqOut);
+    }
 
     // ── hero canvas: flowing wave field ──────────────────────
     const canvas = canvasRef.current;
@@ -301,7 +314,10 @@ export default function Home() {
         revealObs?.disconnect();
         window.removeEventListener('resize', handleResize);
         window.removeEventListener('mousemove', handleMouseMove);
-        if (faqGrid) faqGrid.removeEventListener('click', faqClick);
+        if (faqGrid) {
+          faqGrid.removeEventListener('mouseover', faqOver);
+          faqGrid.removeEventListener('mouseout', faqOut);
+        }
         document.body.classList.remove('loading');
       };
     }
@@ -310,7 +326,10 @@ export default function Home() {
       clearTimeout(preloaderTimeout);
       cancelAnimationFrame(rafId);
       revealObs?.disconnect();
-      if (faqGrid) faqGrid.removeEventListener('click', faqClick);
+      if (faqGrid) {
+        faqGrid.removeEventListener('mouseover', faqOver);
+        faqGrid.removeEventListener('mouseout', faqOut);
+      }
       document.body.classList.remove('loading');
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -332,7 +351,7 @@ export default function Home() {
         </div>
         <div className="pre-bottom">
           <div className="mono">
-            Coff<span style={{ color: 'var(--accent)', marginLeft: '-0.36em' }}>₹</span>© 2026
+            Coff<span style={{ color: 'var(--accent)', marginLeft: '0.04em' }}>₹</span>© 2026
           </div>
         </div>
       </div>
@@ -341,7 +360,7 @@ export default function Home() {
       <header className="nav">
         <a className="brand" href="#top">
           <span className="dot" />
-          Coff<span style={{ color: 'var(--accent)', fontWeight: 500, marginLeft: '-0.36em' }}>₹</span>
+          Coff<span style={{ color: 'var(--accent)', fontWeight: 500, marginLeft: '-0.08em' }}>₹</span>
         </a>
         <nav className="links">
           <a href="#work">Features</a>
@@ -427,11 +446,6 @@ export default function Home() {
             <h2 className="big-statement reveal">
               Built for how <em>Indian portfolios</em> actually work
             </h2>
-            <div className="cases-meta reveal" data-d="1">
-              <a href="/dashboard">Live demo ↗</a>
-              <a href="/login">Sign in ↗</a>
-              <span>Equities · ETFs · <strong style={{ color: 'var(--fg)' }}>Mutual funds</strong></span>
-            </div>
           </div>
           <div className="case-grid">
             {CASES.map((c, i) => (
@@ -513,9 +527,13 @@ export default function Home() {
                 <span className="qa-back" aria-hidden="true" />
                 <button className="qa" type="button" aria-expanded="false">
                   <span className="qa-face">
-                    <span className="qa-idx">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="qa-index" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="qa-kicker" aria-hidden="true"><i />Question</span>
                     <span className="qa-q">{f.q}</span>
-                    <span className="qa-plus" aria-hidden="true" />
+                    <span className="qa-cue" aria-hidden="true">
+                      <span className="qa-cue-txt">Reveal</span>
+                      <span className="qa-plus" />
+                    </span>
                   </span>
                   <span className="qa-panel">
                     <span className="qa-x" aria-hidden="true" />
@@ -544,7 +562,7 @@ export default function Home() {
       {/* ── FOOTER ────────────────────────────────────────── */}
       <footer className="foot">
         <div className="mono">
-          Coff<span style={{ color: 'var(--accent)', marginLeft: '-0.36em' }}>₹</span>© — Investment portfolio tracker · NSE / BSE / Mutual funds
+          Coff<span style={{ color: 'var(--accent)', marginLeft: '0.04em' }}>₹</span>© — Investment portfolio tracker · NSE / BSE / Mutual funds
         </div>
         <div className="foot-links">
           <a href="/login">Login</a>

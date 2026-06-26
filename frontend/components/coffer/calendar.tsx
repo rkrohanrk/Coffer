@@ -1,7 +1,7 @@
 "use client";
 import { useState, type CSSProperties } from "react";
 
-import { rupee, rupeeCompact } from "@/lib/format";
+import { rupee } from "@/lib/format";
 
 type Vars = CSSProperties & Record<string, string>;
 
@@ -24,11 +24,7 @@ function cofDayPnl(y: number, m: number, d: number): number | null {
 const COF_MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 const COF_DOW = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
 
-function compactAbs(n: number) {
-  return rupeeCompact(Math.abs(n)).slice(1); // drop the leading ₹
-}
-
-export function PnlCalendar({ mode = "amounts", delay = 0 }: { mode?: "amounts" | "dots"; delay?: number }) {
+export function PnlCalendar({ delay = 0 }: { delay?: number }) {
   const today = new Date();
   const TODAY = { y: today.getFullYear(), m: today.getMonth(), d: today.getDate() };
   const [ym, setYm] = useState({ y: TODAY.y, m: TODAY.m });
@@ -64,7 +60,7 @@ export function PnlCalendar({ mode = "amounts", delay = 0 }: { mode?: "amounts" 
   const cellStyle = (c: Cell): Vars => {
     if (c.pad || c.future || c.pnl == null) return {};
     const t = Math.min(1, Math.abs(c.pnl) / maxMag);
-    const pct = Math.round(9 + t * 30); // 9% – 39% tint
+    const pct = Math.round(26 + t * 40); // 26% – 66% tint: clearly green/red by magnitude
     const col = c.pnl >= 0 ? "var(--acc)" : "var(--b-down)";
     return { "--cell-bg": `color-mix(in srgb, ${col} ${pct}%, transparent)` };
   };
@@ -95,12 +91,6 @@ export function PnlCalendar({ mode = "amounts", delay = 0 }: { mode?: "amounts" 
             <div key={c.key} className={`cof-cal-cell ${cls} ${c.today ? "today" : ""}`} style={cellStyle(c)}
               title={c.pnl != null && !c.future ? `${c.pnl >= 0 ? "+" : "−"}${rupee(Math.abs(c.pnl), 0)}` : undefined}>
               <span className="d">{c.d}</span>
-              {c.pnl != null && !c.future && mode === "amounts" && (
-                <span className="v">{c.pnl >= 0 ? "+" : "−"}{compactAbs(c.pnl)}</span>
-              )}
-              {c.pnl != null && !c.future && mode === "dots" && (
-                <span className="dot" style={{ background: c.pnl >= 0 ? "var(--acc)" : "var(--b-down)" }} />
-              )}
             </div>
           );
         })}

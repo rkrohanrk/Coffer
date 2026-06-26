@@ -92,7 +92,7 @@ export default function LoginPage() {
 
   function valid() {
     const okEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-    const okPw = password.length >= 4;
+    const okPw = password.length >= 6;
     const okName = mode === "signin" || name.trim().length >= 2;
     const okMatch = mode === "signin" || password === confirmPassword;
     return okEmail && okPw && okName && okMatch;
